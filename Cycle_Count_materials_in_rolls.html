@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RollCount</title>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    <h3>Determine fraction of roll remaining</h3>
+    <button type="button" onclick="enter_part_number()">Enter Part Number</button>
+    <h3>Or</h3>
+    <button type="button" onclick="enter_dimensions()">Enter roll dimensions</button>
+    <button type="button" onclick="display_parts()">Show parts data</button>
+
+    <div class="DimensionOptions">
+        <label>Outer Diameter</label>
+        <input type="text" id="OD">
+        <label>Core Size</label>
+        <input type="text" id="Core">
+        <label>Current Outer Diameter</label>
+        <input type="text" id="DIM_OD_current">
+        <button type="button" onclick="calculate_dim()">Submit</button>
+    </div>
+
+    <div class="PartNumberOptions">
+        <label>Part Number</label>
+        <input type="text" id="PN">
+        <label>Current Outer Diameter</label>
+        <input type="text" id="PN_OD_current">
+        <button type="button" onclick="calculate_pn()">Submit</button>
+    </div>
+
+    <h3 class="Result"></h3>
+
+    <table class="PNtable"> 
+  	<thead> 
+    	<tr> 
+      		<th>PN</th> 
+      		<th>OD [in]</th> 
+      		<th>Core [in]</th> 
+    	</tr> 
+  	</thead> 
+  	<tbody id="tableBody"> 
+  	</tbody> 
+    </table> 
+
+    <script>
+        const data1 = {
+            "01030248":{OD:8.13,Core:4.75},
+            "01180081":{OD:2,Core:1.3125},
+            "01180281":{OD:7.1875,Core:3.1875},
+            "01180300":{OD:2.75,Core:1.25},
+            "01180372":{OD:14.25,Core:3},
+            "01188505":{OD:4.5,Core:3.1875},
+            "01188553":{OD:6.625,Core:3.1875},
+            "01188629":{OD:6.875,Core:3.25},
+            "01188630":{OD:6.875,Core:3.1875},
+            "01188706":{OD:4.5625,Core:3.25},
+            "01190181":{OD:11.5,Core:4},
+            "01190182":{OD:11.5,Core:4},
+            "01030076r":{OD:13,Core:3.25}
+        };
+        const data2 = [
+            {pn:"01030248",OD:8.13,Core:4.75},
+            {pn:"01180081",OD:2,Core:1.3125},
+            {pn:"01180281",OD:7.1875,Core:3.1875},
+            {pn:"01180300",OD:2.75,Core:1.25},
+            {pn:"01180372",OD:14.25,Core:3},
+            {pn:"01188505",OD:4.5,Core:3.1875},
+            {pn:"01188553",OD:6.625,Core:3.1875},
+            {pn:"01188629",OD:6.875,Core:3.25},
+            {pn:"01188630",OD:6.875,Core:3.1875},
+            {pn:"01188706",OD:4.5625,Core:3.25},
+            {pn:"01190181",OD:11.5,Core:4},
+            {pn:"01190182",OD:11.5,Core:4},
+            {pn:"01030076r",OD:13,Core:3.25}
+        ];
+        document.querySelector(".PartNumberOptions").style.visibility = "hidden";
+        document.querySelector(".DimensionOptions").style.visibility = "hidden";
+	document.querySelector(".PNtable").style.visibility = "hidden";
+        // const response = await fetch( "/roll_data.json" );
+        // const data = await response.json();
+
+        //toggle
+        function enter_part_number() {
+            if (document.querySelector(".DimensionOptions").style.visibility == "visible") {
+                document.querySelector(".DimensionOptions").style.visibility = "hidden";
+            }
+            document.querySelector(".Result").innerHTML = "";
+            var input_option = document.querySelector(".PartNumberOptions");
+            input_option.style.visibility = input_option.style.visibility == "hidden" ? "visible" : "hidden";
+        }
+
+        function enter_dimensions() {
+            if (document.querySelector(".PartNumberOptions").style.visibility == "visible") {
+                document.querySelector(".PartNumberOptions").style.visibility = "hidden";
+            }
+            document.querySelector(".Result").innerHTML = "";
+            var input_option = document.querySelector(".DimensionOptions");
+            input_option.style.visibility = input_option.style.visibility == "hidden" ? "visible" : "hidden";
+        }
+
+        function calculate_dim() {
+            var od = Number(document.getElementById("OD").value);
+            var core = Number(document.getElementById("Core").value);
+            var curr_od = Number(document.getElementById("DIM_OD_current").value);
+            var result = (curr_od*curr_od - core*core) / (od*od - core*core);
+            document.querySelector(".Result").innerHTML = (100*result).toFixed(2) + "%";
+        }
+
+        function calculate_pn() {
+            var pn = document.getElementById("PN").value;
+            //find data.
+            var od = data1[pn]["OD"];
+            var core = data1[pn]["Core"];
+            var curr_od = Number(document.getElementById("PN_OD_current").value);
+            var result = (curr_od*curr_od - core*core) / (od*od - core*core);
+            document.querySelector(".Result").innerHTML = (100*result).toFixed(2) + "%";
+        }
+
+	function add_table(item) {
+            var table_output = document.getElementById("tableBody");
+            var x = table_output.rows.length;
+            if (x < data2.length ) {
+    	    var row = document.createElement("tr"); 
+ 
+    	    var nameCell = document.createElement("td"); 
+    	    nameCell.textContent = item.pn; 
+    	    row.appendChild(nameCell); 
+ 
+    	    var odCell = document.createElement("td"); 
+    	    odCell.textContent = item.OD; 
+    	    row.appendChild(odCell); 
+ 
+    	    var coreCell = document.createElement("td"); 
+    	    coreCell.textContent = item.Core; 
+    	    row.appendChild(coreCell); 
+ 
+    	    table_output.appendChild(row);}
+        }
+
+        function display_parts() {
+            if (document.querySelector(".PNtable").style.visibility == "visible") {
+                document.querySelector(".PNtable").style.visibility = "hidden";
+            }
+            else if (document.querySelector(".PNtable").style.visibility == "hidden") {
+                document.querySelector(".PNtable").style.visibility = "visible";
+            }
+            
+            data2.forEach(add_table);
+        }
+        
+    </script>
+</body>
+
+</html>
